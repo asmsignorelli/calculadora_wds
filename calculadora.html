@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <title>Calculadora</title>
+        <meta charset="utf-8">
+        <meta name="author" content="Amanda">
+        <meta name="description" content="calculadora">
+        <meta name="keywords" content="matemática, calculadora">
+
+        <style>
+
+            *, *::before, *::after{
+                box-sizing: border-box;
+                font-family: sans-serif;
+                
+            }
+
+            body{
+                padding: 0;
+                margin: 0;
+                background-image: linear-gradient(to right,#531736, #8d0092);
+                
+                
+            }
+
+            button{
+                cursor: pointer;
+                font-size: 2em;
+                font-weight: bold;
+                padding: .25em;
+                border: 1px solid white;
+                background-color: rgba(255,255,255, .75);
+                
+                
+                
+            }
+
+            button:hover{
+                background: white;
+
+            }
+
+            #visor{
+               
+                padding: 10px 10px 10px 10px;
+                color: white;
+                font-size: 3em;
+                font-weight: 600;
+                text-align: right;
+                display: flex;
+                align-items: flex-end;
+                justify-content: space-around;
+                flex-direction: column;
+                background-image: linear-gradient(#92004b, #92004b);
+                
+                
+                word-wrap: break-word;
+                word-break: break-all;
+
+                grid-column: 1 / -1;
+                
+                
+            }
+
+            #visor-previo{
+                
+                padding: 50px 10px 5px 10px;
+                font-size: 1.5em;
+                font-weight: lighter;
+                color: rgba(255,255,255, .75);
+                text-align: right;
+                display: flex;
+                align-items: flex-end;
+                justify-content: space-around;
+                flex-direction: column;
+                background-image: linear-gradient(#92004b, #92004b);
+                border: 10px solid #92004b;
+
+                word-wrap: break-word;
+                word-break: break-all;
+
+                grid-column: 1 / -1;
+            
+                
+
+            }
+
+            #calculadora{
+                padding: 20px;
+                border-radius: 5px;
+                box-shadow: 0 0 10px rgba(0,0,0,.8);
+                margin: 15px auto;
+                
+                
+                
+
+                display: grid;
+                justify-content: center;
+                align-content: center;
+                min-height: 100vh;
+                grid-template-columns: repeat(4, 100px);
+                
+                grid-template-rows: minmax(120px, auto) repeat(6, 100px);
+            }
+
+            .igual{
+                grid-column: 3 / 5;
+            }
+
+        </style>
+    </head>
+
+    <body>
+        <div id="calculadora">
+            <div data-previous-operand id="visor-previo"></div>
+            <div data-current-operand id="visor"></div>
+           
+                <button data-all-clear class="ac">AC</button> <button data-operation>+</button> <button data-operation>-</button> <button data-operation>x</button>
+                <button data-number>9</button> <button data-number>8</button> <button data-number>7</button> <button data-operation>/</button>
+                <button data-number>6</button> <button data-number>5</button> <button data-number>4</button> <button data-operation>%</button>
+                <button data-number>3</button> <button data-number>2</button> <button data-number>1</button> <button data-delete>del</button>
+                <button data-number>0</button> <button data-number>.</button> <button data-equals class="igual">=</button>
+
+            
+        </div>
+        
+        <script>
+
+            class Calculadora{
+                constructor(visorPrevioTexto, visorAtualTexto){
+                    
+                    this.visorPrevioTexto = visorPrevioTexto
+                    this.visorAtualTexto = visorAtualTexto
+                    this.clear()
+                }
+
+                clear(){
+                    
+                    this.currentOperand = ''
+                    this.previousOperand = ''
+                    this.operation = undefined
+
+                }
+
+                delete(){
+                    this.currentOperand = this.currentOperand.toString().slice(0, -1)
+
+                }
+
+                addNumero(number){
+                    if(number === '.' && this.currentOperand.includes('.'))return
+                    this.currentOperand = this.currentOperand.toString() + 
+                    number.toString()
+
+                }
+
+                escolherOperacao(operation){
+                    if(this.currentOperand === '') return
+                    if(this.previousOperand !== ''){
+                        this.compute()
+                    }
+                    this.operation = operation
+                    this.previousOperand = this.currentOperand
+                    this.currentOperand = ''
+
+                }
+
+                compute(){
+                    let computation
+                    const prev = parseFloat(this.previousOperand)
+                    const current = parseFloat(this.currentOperand)
+                    if(isNaN(prev) || isNaN(current)) return
+                    switch(this.operation){
+                        case '+':
+                            computation = prev + current
+                            break
+                        case '-':
+                            computation = prev - current
+                            break
+                        case 'x':
+                            computation = prev * current
+                            break
+                        case '/':
+                            computation = prev / current
+                            break
+                        case '%':
+                            computation = prev * (current/100)
+                            break
+                        default:
+                            return
+                    }
+                    this.currentOperand = computation
+                    this.operation = undefined
+                    this.previousOperand = ''
+
+                }
+
+                getDisplayNumber(number){
+                    const stringNumber = number.toString()
+                    const integerDigits = parseFloat(stringNumber.split('.')[0])
+                    const decimalDigits = stringNumber.split('.')[1]
+                    let integerDisplay
+                    if(isNaN(integerDigits)){
+                        integerDisplay = ''
+                    } else {
+                        integerDisplay = integerDigits.toLocaleString('en', 
+                        {maximumFractionDigits: 0})
+                    }
+
+                    if (decimalDigits != null){
+                        return `${integerDisplay}.${decimalDigits}`
+                    } else{
+                        return integerDisplay
+                    }
+                }
+
+                atualizarVisor(){
+                    this.visorAtualTexto.innerText = 
+                    this.getDisplayNumber(this.currentOperand)
+                    if (this.operation != null){
+                        this.visorPrevioTexto.innerText = 
+                        `${this.previousOperand} ${this.operation}`
+
+                    } else {
+                        this.visorPrevioTexto.innerText = ''
+                    }
+                    
+
+                }
+            }
+
+            const numBotoes = document.querySelectorAll('[data-number]');
+            const opBotoes = document.querySelectorAll('[data-operation]');
+            const igualBotao = document.querySelector('[data-equals]');
+            const delBotao = document.querySelector('[data-delete]');
+            const zerarBotao = document.querySelector('[data-all-clear]');
+            const visorPrevioTexto = document.querySelector('[data-previous-operand]');
+            const visorAtualTexto = document.querySelector('[data-current-operand]');
+
+            const calculator = new Calculadora(visorPrevioTexto, visorAtualTexto);
+
+            numBotoes.forEach(button => {
+                button.addEventListener('click', () => {
+                    calculator.addNumero(button.innerText)
+                    calculator.atualizarVisor()
+                })
+            });
+
+            opBotoes.forEach(button => {
+                button.addEventListener('click', () => {
+                    calculator.escolherOperacao(button.innerText)
+                    calculator.atualizarVisor()
+                })
+            });
+
+            igualBotao.addEventListener('click', button => {
+                calculator.compute()
+                calculator.atualizarVisor()
+                calculator.clear()
+            })
+
+            zerarBotao.addEventListener('click', button => {
+                calculator.clear()
+                calculator.atualizarVisor()
+            })
+
+            delBotao.addEventListener('click', button => {
+                calculator.delete()
+                calculator.atualizarVisor()
+            })
+            
+        </script>
+    </body>
+</html>
